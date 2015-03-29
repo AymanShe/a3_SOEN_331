@@ -40,3 +40,45 @@ transition(error_diagnosis,safe_shutdown,shutdown,retry>2,retry=0)//how to chang
 transition(error_diagnosis,monitoring,moni_rescue,null,null)//what’s the guard
 transition(error_diagnosis,idle,idle_rescue,null,null)//what’s the guard
 transition(error_diagnosis,init,retry_init,retry<2,retry++)//how to change variable value
+transition(safe_shutdown,dormant,sleep,null,null)
+---------------------------
+
+%%under init
+
+state(boot_hw)
+state(senchk)
+state(tchk)
+state(psichk)
+state(ready)
+
+superstate(init,boot_hw)
+superstate(init,senchk)
+superstate(init,tchk)
+superstate(init,psichk)
+superstate(init,ready)
+
+initial_state(boot_hw,init)
+
+transition(boot_hw,senchk,hw_ok,null,null)
+transition(senchk,tchk,senok,null,null)
+transition(tchk,psichk,t_ok,null,null)
+transition(psichk,ready,psi_ok,null,null)
+-----------------------------
+
+%%under monitoring
+
+state(monidle)
+state(regulate_invironment)
+state(lockdown)
+
+superstate(monitoring,monidle)
+superstate(monitoring,regulate_invironment)
+superstate(monitoring,lockdown)
+
+initial_state(monidle,monitoring)
+
+transition(monidle,regulate_invironment,no_contagion,null,null)
+transition(monidle,lockdown,contagion_alert,null,[inlockdown=true,FACILITY_CRIT_MESG]) //check variable value change and action msg
+transition(regulate_invironment,monidle,after_100ms,null,null)
+transition(lockdown,monidle,purge_succ,null,inlockdown=false)//check variable value change
+----------------------------

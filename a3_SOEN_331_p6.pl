@@ -9,7 +9,6 @@
 %top level
 
 state(top).
-superstate(null,top).%check for correctness
 initial_state(top,null).
 transition(top,exit,kill,no_guard,null).%can we kill while in lockdown+ a transition to exit
 
@@ -128,8 +127,8 @@ transition(error_rcv,applicable_rescue,no_event,err_protocol_def=true,null).
 transition(error_rcv,reset_module_data,no_event,err_protocol_def=false,null).
 transition(applicable_rescue,exit,apply_protocol_rescue,no_guard,null).%a transition to exit
 transition(reset_module_data,exit,reset_to_stable,no_guard,null).%a transition to exit
-transition(s1,s1,event1,guard1,hi).%for testing
-transition(s2,s2,event2,guard2,null).%for testing
+transition(s1,s1,event1,guard1,hi).%a loop edge for testing only
+transition(s2,s2,event2,guard2,null).%a loop edge for testing only
 %--------------------------------
 is_loop(Event,Guard):-
 	transition(State,State,Event,Guard,_).
@@ -141,7 +140,20 @@ is_edge(Event,Guard):-
 size(Length):-
 	findall([Event,Guard],is_edge(Edge,Guard),L),
 	length(L,Length),
-       Result is Length.
-is_link(Edge,Guard):-
-	is_edge(Edge,Guard),
-	NOT is_loop(Event,Guard).	
+	Result is Length.
+is_link(Event,Guard):-
+	transition(S,D,Event,Guard,_),
+	(S\==D).
+all_superstates(Set):-
+	findall(Superstate,superstate(Superstate,_),L),
+	list_to_set(L,Set).	
+ancestor(Ancestor,Descendant):-
+	superstate(Ancestor,Descendant).
+all_states(L):-
+	findall(State,state(State),List),
+	list_to_set(List,L).%a set is return not a list
+all_init_states(L):-
+	findall(State,initial_state(State,_),List),
+	list_to_set(List,L).%a set is return not a list
+get_starting_state(State):-
+	initial_state(State,null).
